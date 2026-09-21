@@ -11,21 +11,33 @@ print("║  ⚠️  Expiring:   xx items                  ║")
 print("║  🗑️  Wasted:     xx items                  ║")
 print("╚════════════════════════════════════════════╝")
 
-#datatable 
-datatable = Table(title = "Food Inventory")
+def food_inventory_table():
+    #datatable 
+    datatable = Table(title = "Food Inventory")
 
-datatable.add_column("Food Name", justify="center", style="cyan",   no_wrap=True)
-datatable.add_column("Expiry_Date", style="magenta")
-datatable.add_column("Category", justify="center", style="bright_yellow")
-datatable.add_column("Date_Purchased", justify="center", style="deep_pink4")
-datatable.add_column("Inventory_Quantity", justify="center", style="blue3")
+    #this is the data column
+    datatable.add_column("Food Name", justify="center", style="cyan",   no_wrap=True)
+    datatable.add_column("Expiry_Date", style="magenta")
+    datatable.add_column("Category", justify="center", style="bright_yellow")
+    datatable.add_column("Date_Purchased", justify="center", style="deep_pink4")
+    datatable.add_column("Inventory_Quantity", justify="center", style="blue3")
 
-datatable.add_row("Chicken", "Milk", "Orange")
-datatable.add_row("20/10/2027", "24/12/2028", "30/12/2027")
-datatable.add_row("", "", "")
-datatable.add_row("", "", "")
-datatable.add_row("", "", "")
+    #this is the data rows
+    datatable.add_row("chicken", "25/04/2029", "")
+    datatable.add_row("milk", "25/04/2029", "")
+    datatable.add_row("orange", "25/04/2029", "")
+    datatable.add_row("", "", "")
+    datatable.add_row("", "", "")
 
-console = Console()
-console.print(datatable)
+    #display the datatable
+    console = Console()
+    console.print(datatable)
+
+    return(datatable)
+
+print(food_inventory_table())
+
+
+
+
 
