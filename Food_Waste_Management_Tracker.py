@@ -4,7 +4,7 @@ from rich.table import Table
 
 #terminal_UI
 print("╔════════════════════════════════════════════╗")
-print("║     🤖 Welcome to G6 food waste tracker   ║ ")
+print("║     🤖 Welcome to G6 food waste tracker    ║ ")
 print("║                                            ║")
 print("║  📦 Inventory:  xx items                   ║")
 print("║  ⚠️  Expiring:   xx items                  ║")
@@ -27,3 +27,4 @@ datatable.add_row("", "", "")
 
 console = Console()
 console.print(datatable)
+
