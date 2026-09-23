@@ -12,7 +12,7 @@ Contract with neighbouring layers (do not break these):
               status     (str)  one of the STATUS_* constants below
               action     (str)  one of the ACTION_* constants below
               notification (str) ready-to-print wording decided HERE in the
-                       logic layer - output_manager just prints it verbatim.
+                       logic layer - output_manager just prints it.
 
 Pure functions only: no input(), no print(), no network. That keeps the
 whole layer testable without a human at the keyboard.
