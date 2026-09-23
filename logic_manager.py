@@ -32,7 +32,7 @@ LOW_STOCK_THRESHOLD = 5        # below this -> resupply recommendation
 
 
 def _as_recipe_list(recipes):
-    """AI layer may hand us a list (preferred) or Jerome's raw text - normalize."""
+    """AI layer may hand us a list."""
     if isinstance(recipes, list):
         return [str(r) for r in recipes]
     if isinstance(recipes, str) and recipes.strip():
