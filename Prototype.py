@@ -259,7 +259,7 @@ def main_menu():
     inventory = load_from_csv()
 
     while True:
-        #displays
+        #displays current time
         system_time = datetime.now()
 
         print("\n=== FOOD WASTE MANAGEMENT SYSTEM  ===")
