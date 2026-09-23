@@ -5,7 +5,7 @@ import os
 from rich import print
 
 
-FILENAME = "C:/Users/thesm/Downloads/food_inventory_dataset.csv"
+FILENAME = "../Dataset/food_inventory_dataset.csv"
 DATE_FORMAT = "%d/%m/%Y"
 FIELDNAMES = [
     "Food_Name",

@@ -1,7 +1,7 @@
 import csv
 from datetime import datetime, date
 
-def expiry_alert(category: str = None):
+def expiry_alert(category: str = None, time: int = 5):
     with open("../Dataset/food_inventory_dataset.csv", encoding="utf-8-sig") as f:
         table = list(csv.DictReader(f))
 
@@ -15,7 +15,7 @@ def expiry_alert(category: str = None):
         category_matched = True
 
         days_to_exp = (datetime.strptime(row["Expiry_Date"], "%d/%m/%Y").date() - date.today()).days
-        if days_to_exp > 5:
+        if days_to_exp > time:
             continue
 
         result.append(f"{row['Food_Name']} | {days_to_exp} days left | qty {row['Inventory_Quantity']}")

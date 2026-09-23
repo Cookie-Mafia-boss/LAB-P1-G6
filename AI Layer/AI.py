@@ -61,7 +61,7 @@ def AI_Model(prompt: str):
 
 print(expiry_alert())
 
-result = AI_Model("can you tell me what food that will approach expiry? just give me 5")
+result = AI_Model("can you tell me what food that will approach expiry in 5 days?")
 print(result)
 
 # def waste_trends():
