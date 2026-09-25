@@ -1,6 +1,8 @@
 import requests
 import json
 
+#Created by Moses and Jerome
+
 def get_recommendations(prompt, model="qwen2.5-coder:1.5b"):
     system_prompt = (
         "You assign as food waste reduction assistant to monitor the canteen/restaurant's food storage."
