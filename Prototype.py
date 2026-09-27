@@ -2,7 +2,8 @@ import csv
 from datetime import datetime
 import os
 #colour coding
-from rich import print
+from rich import print#
+
 
 
 FILENAME = "C:/Users/thesm/Downloads/food_inventory_dataset.csv"
@@ -66,11 +67,9 @@ def save_to_csv(inventory):
     except Exception as e:
         print(f"❌ Error saving to file: {e}")
 
-
 # ==========================================
 # DATA VALIDATION HELPER FUNCTIONS
 # ==========================================
-
 
 def get_valid_food_name():
     """Ensures food name is not empty."""
@@ -79,8 +78,6 @@ def get_valid_food_name():
         if name:
             return name
         print("❌ Food name cannot be empty. Please try again.")
-
-
 
 def get_valid_expiry_date():
     """Validates date format and ensures expiry date is in the future."""
@@ -149,6 +146,12 @@ def get_valid_quantity():
         except ValueError:
             print("❌ Invalid input! Please enter a whole number (e.g., 10).")
 
+
+def SortingFunc():
+    return
+
+def ExpiryDateData():
+    return
 
 # ==========================================
 # CLI CORE FEATURES
@@ -228,7 +231,7 @@ def check_expiries(inventory, alert_days=30):
         days_remaining = (exp_date - today).days
 
         if days_remaining < 0:
-            status = "EXPIRED"
+            status = "[red]EXPIRED[/red]"
             expired_items.append(item["Food_Name"])
         elif days_remaining <= alert_days:
             #color coded to red
@@ -250,6 +253,16 @@ def check_expiries(inventory, alert_days=30):
         f"[!] Expiring within {alert_days} days ({len(expiring_soon_items)}): {', '.join(expiring_soon_items) if expiring_soon_items else 'None'}\n"
     )
 
+def ExpiryData():
+
+        #save data to csv format, so that AI api can make use of the data to do  
+
+    return
+
+def SortingFunct():
+
+    return 
+
 
 # ==========================================
 # MAIN MENU LOOP
@@ -267,7 +280,8 @@ def main_menu():
         print("1. View Inventory")
         print("2. Add New Food Item")
         print("3. Check Expiry Alerts")
-        print("4. Exit")
+        print("4. Get AI suggestions for expired food and waste trends ")
+        print("5. Exit")
 
 
         choice = input("Select an option (1-4): ").strip()
