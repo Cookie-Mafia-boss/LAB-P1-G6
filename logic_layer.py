@@ -7,7 +7,7 @@ def check_expiries(inventory, alert_days=30):
     expiring_soon_items = []
 
     for item in inventory:
-        if 0 <= item["Days_Remaining"] <= alert_days:
+        if 0 < item["Days_Remaining"] <= alert_days:
             expiring_soon_items.append(item)
 
     # Sort items according to Days Remaining
