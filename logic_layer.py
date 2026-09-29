@@ -15,4 +15,3 @@ def check_expiries(inventory, alert_days=30):
 
 def inventory_count(inventory):
     return len(inventory)
-    

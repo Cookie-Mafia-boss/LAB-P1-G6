@@ -5,8 +5,6 @@ from rich import print
 
 FILENAME = "./food_inventory_dataset.csv"
 DATE_FORMAT = "%d/%m/%Y"
-
-#this is a array to store the data types
 FIELDNAMES = [
     "Food_Name",
     "Expiry_Date",
@@ -23,11 +21,10 @@ def initialise_inventory():
     inventory = []
 
     if not os.path.exists(FILENAME):
-        print(f"⚠️ Warning: File '{FILENAME}' not found. Starting with an empty inventory.")
+        print(f"[yellow]Warning:[/yellow] File '{FILENAME}' not found. Starting with an empty inventory.")
         return inventory
 
     try:
-        #open csv file (food_Inventory_dataset)
         with open(FILENAME, mode="r", encoding="utf-8-sig") as file:
             reader = csv.DictReader(file)
             today = datetime.now().date()
@@ -49,7 +46,7 @@ def initialise_inventory():
                 days_remaining = (exp_date - today).days
 
                 # Determine status
-                if days_remaining <= 0:
+                if days_remaining < 0:
                     status = "EXPIRED"
                 elif days_remaining <= 30:
                     status = "EXPIRING"
@@ -68,8 +65,8 @@ def initialise_inventory():
                 except ValueError:
                     continue  # Skip row if quantity is not a valid integer
 
-        print(f"✅ Successfully loaded {len(inventory)} items from '{FILENAME}'.")
+        print(f"[green]Success:[/green] Successfully loaded {len(inventory)} items from '{FILENAME}'.")
     except Exception as e:
-        print(f"❌ Error reading file: {e}")
+        print(f"[red]Error:[/red] Error reading file: {e}")
 
     return inventory
