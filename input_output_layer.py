@@ -154,6 +154,12 @@ def add_food_item(inventory):
     """Stub function to allow adding items manually."""
     print("\n--- Add New Food Item ---")
     name = input("Enter food name: ").strip()
+
+    # Reject the item if the food name is empty
+    if not name:
+        print("[red]Error:[/red] Food name cannot be empty.")
+        return
+
     qty = input("Enter quantity: ").strip()
     exp_date = input(f"Enter expiry date ({DATE_FORMAT}): ").strip()
 

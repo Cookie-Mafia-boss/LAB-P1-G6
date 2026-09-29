@@ -1,9 +1,10 @@
+import re
 from datetime import datetime, date
 
 DATE_FORMAT = "%d/%m/%Y"
 MAX_YEARS = 30
 
-
+# Checks if the items are within the 30 year limit
 def shift_years(d:date, years:int) -> date:
     """Move a date by N years"""
     return d.replace(year=d.year + years)
@@ -28,6 +29,18 @@ def validate_expiry_date(date_str: str, max_years: int = MAX_YEARS):
         return None, f"Expiry date is more than {max_years} years in the future."
     
     return exp_date, None
+
+def validate_food_name(name: str):
+    "Rejects empty names and integer inputs"
+    cleaned = name.strip
+
+    if not cleaned:
+        return None, "Food name cannot be empty."
+
+    if re.fullmatch(r"[+-]?\d+(\.\d+)?", cleaned):
+        return None, "Food name cannot be a number. Please enter a valid food name (e.g. Milk)."
+
+    return cleaned, None
 
 # Checks Items with EXPIRING Status and makes/returns {Expiring soon}.
 def check_expiries(inventory, alert_days=30):
