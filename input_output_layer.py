@@ -2,20 +2,15 @@ import ctypes
 import os
 from datetime import datetime
 from rich import print
-<<<<<<< HEAD
 from rich.panel import Panel
 from rich.markdown import Markdown
 from rich.table import Table
 from rich.console import Console
 from rich.text import Text
-=======
-from rich.table import Table
->>>>>>> ccb4b06753ff59e084999f7c2bba9faa1945c0df
 
 from logic_layer import inventory_count
 
 DATE_FORMAT = "%d/%m/%Y"
-<<<<<<< HEAD
 console = Console()
 
 
@@ -26,32 +21,14 @@ console = Console()
 def display_items(inventory, title):
     """Display inventory as a formatted table."""
     table = Table(title=title, show_header=True, header_style="bold purple")
-=======
-
-
-# Generates table to display all items in object. Requires {Inventory}, "Title"
-def display_items(inventory, title):
-    # Create table structure
-    table = Table(title=title, show_header=True, header_style="bold purple")
-
-    # Add columns with alignments and colors
->>>>>>> ccb4b06753ff59e084999f7c2bba9faa1945c0df
     table.add_column("Food Name", no_wrap=True)
     table.add_column("Qty", style="cyan", justify="center")
     table.add_column("Expiry Date", style="cyan", justify="center")
     table.add_column("Days Left", style="cyan", justify="center")
     table.add_column("Status", justify="right")
 
-<<<<<<< HEAD
     for item in inventory:
         raw_status = item["Status"]
-=======
-    # Add data rows
-    for item in inventory:
-        raw_status = item["Status"]
-        
-        # Check status and set formatted markup string without modifying inventory dict
->>>>>>> ccb4b06753ff59e084999f7c2bba9faa1945c0df
         if "EXPIRED" in raw_status:
             status_formatted = "[bold red]EXPIRED[/bold red]"
         elif "EXPIRING" in raw_status:
@@ -71,7 +48,6 @@ def display_items(inventory, title):
     return table
 
 
-<<<<<<< HEAD
 def display_ai_suggestions(sections):
     """
     Display AI response as structured panels with colors.
@@ -146,8 +122,6 @@ def _create_panel(title: str, content: str, border_style: str) -> Panel:
     )
 
 
-=======
->>>>>>> ccb4b06753ff59e084999f7c2bba9faa1945c0df
 def raise_alert(expiring_inventory):
     if len(expiring_inventory) > 0:
         expire_alert(expiring_inventory)
@@ -160,7 +134,6 @@ def do_nothing():
 def expire_alert(expiring_inventory):
     alert_title = 'Items are about to expire!'
     alert_text = f"{inventory_count(expiring_inventory)} items are about to expire! Would you like to view them?"
-<<<<<<< HEAD
 
     if os.name == 'nt':
         result = ctypes.windll.user32.MessageBoxW(0, alert_text, alert_title, 4)
@@ -170,19 +143,6 @@ def expire_alert(expiring_inventory):
             do_nothing()
     else:
         choice = input(f"\n[Warning] {alert_text} (y/n): ").strip().lower()
-=======
-    
-    # Windows native popup fallback for cross-platform safety
-    if os.name == 'nt':
-        result = ctypes.windll.user32.MessageBoxW(0, alert_text, alert_title, 4)
-        if result == 6:  # Yes
-            print(display_items(expiring_inventory, "Expiring Items"))
-        elif result == 7:  # No
-            do_nothing()
-    else:
-        # Standard CLI prompt for non-Windows platforms (macOS/Linux)
-        choice = input(f"\n⚠️ {alert_text} (y/n): ").strip().lower()
->>>>>>> ccb4b06753ff59e084999f7c2bba9faa1945c0df
         if choice == 'y':
             print(display_items(expiring_inventory, "Expiring Items"))
         else:
@@ -200,11 +160,7 @@ def add_food_item(inventory):
     try:
         exp_dt = datetime.strptime(exp_date, DATE_FORMAT).date()
         days_rem = (exp_dt - datetime.now().date()).days
-<<<<<<< HEAD
 
-=======
-        
->>>>>>> ccb4b06753ff59e084999f7c2bba9faa1945c0df
         if days_rem < 0:
             status = "EXPIRED"
         elif days_rem <= 30:
@@ -220,12 +176,6 @@ def add_food_item(inventory):
             "Days_Remaining": days_rem,
             "Status": status
         })
-<<<<<<< HEAD
         print(f"[green]Success:[/green] Added '{name}' successfully!")
     except Exception as e:
         print(f"[red]Error:[/red] Failed to add item: {e}")
-=======
-        print(f"✅ Added '{name}' successfully!")
-    except Exception as e:
-        print(f"❌ Failed to add item: {e}")
->>>>>>> ccb4b06753ff59e084999f7c2bba9faa1945c0df

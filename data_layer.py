@@ -5,11 +5,6 @@ from rich import print
 
 FILENAME = "./food_inventory_dataset.csv"
 DATE_FORMAT = "%d/%m/%Y"
-<<<<<<< HEAD
-=======
-
-#this is a array to store the data types
->>>>>>> ccb4b06753ff59e084999f7c2bba9faa1945c0df
 FIELDNAMES = [
     "Food_Name",
     "Expiry_Date",
@@ -26,18 +21,10 @@ def initialise_inventory():
     inventory = []
 
     if not os.path.exists(FILENAME):
-<<<<<<< HEAD
         print(f"[yellow]Warning:[/yellow] File '{FILENAME}' not found. Starting with an empty inventory.")
         return inventory
 
     try:
-=======
-        print(f"⚠️ Warning: File '{FILENAME}' not found. Starting with an empty inventory.")
-        return inventory
-
-    try:
-        #open csv file (food_Inventory_dataset)
->>>>>>> ccb4b06753ff59e084999f7c2bba9faa1945c0df
         with open(FILENAME, mode="r", encoding="utf-8-sig") as file:
             reader = csv.DictReader(file)
             today = datetime.now().date()
@@ -78,14 +65,8 @@ def initialise_inventory():
                 except ValueError:
                     continue  # Skip row if quantity is not a valid integer
 
-<<<<<<< HEAD
         print(f"[green]Success:[/green] Successfully loaded {len(inventory)} items from '{FILENAME}'.")
     except Exception as e:
         print(f"[red]Error:[/red] Error reading file: {e}")
-=======
-        print(f"✅ Successfully loaded {len(inventory)} items from '{FILENAME}'.")
-    except Exception as e:
-        print(f"❌ Error reading file: {e}")
->>>>>>> ccb4b06753ff59e084999f7c2bba9faa1945c0df
 
     return inventory
