@@ -160,7 +160,6 @@ def add_food_item(inventory):
     try:
         exp_dt = datetime.strptime(exp_date, DATE_FORMAT).date()
         days_rem = (exp_dt - datetime.now().date()).days
-
         if days_rem < 0:
             status = "EXPIRED"
         elif days_rem <= 30:
