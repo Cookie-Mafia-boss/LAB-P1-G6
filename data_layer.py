@@ -70,3 +70,32 @@ def initialise_inventory():
         print(f"[red]Error:[/red] Error reading file: {e}")
 
     return inventory
+
+def save_item_to_csv(item):
+    """Appends a single item to the CSV file."""
+    fieldnames = FIELDNAMES
+    needs_newline = False
+    file_has_content = os.path.exists(FILENAME) and os.path.getsize(FILENAME) > 0
+
+    if file_has_content:
+        # Reuse whatever header the file already has, so columns stay lined up
+        with open(FILENAME, mode="r", encoding="utf-8-sig", newline="") as f:
+            header = next(csv.reader(f), None)
+            if header:
+                fieldnames = [h.strip() for h in header]
+
+        # If the last line has no newline, the new row would get glued onto it
+        with open(FILENAME, mode="rb") as f:
+            f.seek(-1, os.SEEK_END)
+            needs_newline = f.read(1) not in (b"\n", b"\r")
+
+    # Handles headers like "Food Name" as well as "Food_Name"
+    row = {name: item.get(name.replace(" ", "_"), "") for name in fieldnames}
+
+    with open(FILENAME, mode="a", encoding="utf-8", newline="") as f:
+        if needs_newline:
+            f.write("\r\n")
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        if not file_has_content:
+            writer.writeheader()
+        writer.writerow(row)
