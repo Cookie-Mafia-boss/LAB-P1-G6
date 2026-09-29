@@ -5,6 +5,8 @@ from rich import print
 
 FILENAME = "./food_inventory_dataset.csv"
 DATE_FORMAT = "%d/%m/%Y"
+
+#this is a array to store the data types
 FIELDNAMES = [
     "Food_Name",
     "Expiry_Date",
@@ -25,6 +27,7 @@ def initialise_inventory():
         return inventory
 
     try:
+        #open csv file (food_Inventory_dataset)
         with open(FILENAME, mode="r", encoding="utf-8-sig") as file:
             reader = csv.DictReader(file)
             today = datetime.now().date()
