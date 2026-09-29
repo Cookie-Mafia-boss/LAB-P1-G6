@@ -1,13 +1,20 @@
 from datetime import datetime
 from rich import print
+<<<<<<< HEAD
 from rich.console import Console
 
 console = Console()
+=======
+>>>>>>> ccb4b06753ff59e084999f7c2bba9faa1945c0df
 
 from data_layer import initialise_inventory
 from logic_layer import check_expiries
 from ai_layer import get_ai_suggestions
+<<<<<<< HEAD
 from input_output_layer import display_items, raise_alert, add_food_item, display_ai_suggestions, display_ai_summary_stats
+=======
+from input_output_layer import display_items, raise_alert, add_food_item
+>>>>>>> ccb4b06753ff59e084999f7c2bba9faa1945c0df
 
 
 # ==========================================
@@ -51,10 +58,14 @@ def main_menu():
                 print(f"✅ No items expiring within {days} days.")
         elif choice == "4":
             expiring = check_expiries(inventory)
+<<<<<<< HEAD
             console.print("[cyan]Analyzing inventory with AI...[/cyan]")
             sections = get_ai_suggestions(inventory, expiring)
             display_ai_suggestions(sections)
             display_ai_summary_stats(inventory, expiring)
+=======
+            get_ai_suggestions(inventory, expiring)
+>>>>>>> ccb4b06753ff59e084999f7c2bba9faa1945c0df
         elif choice == "5":
             print("Exiting application. Goodbye!")
             break
