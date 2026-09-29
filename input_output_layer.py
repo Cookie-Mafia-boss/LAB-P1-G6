@@ -9,6 +9,7 @@ from rich.console import Console
 from rich.text import Text
 
 from logic_layer import inventory_count
+from data_layer import save_item_to_csv
 
 DATE_FORMAT = "%d/%m/%Y"
 console = Console()
@@ -167,14 +168,18 @@ def add_food_item(inventory):
         else:
             status = "FRESH"
 
-        inventory.append({
+        new_item = {
             "Food_Name": name,
             "Expiry_Date": exp_date,
             "Date_Purchased": purch_date,
             "Inventory_Quantity": int(qty),
             "Days_Remaining": days_rem,
             "Status": status
-        })
+        }
+
+        save_item_to_csv(new_item)   # write to CSV first
+        inventory.append(new_item)   # then update the in-memory list
         print(f"[green]Success:[/green] Added '{name}' successfully!")
+
     except Exception as e:
         print(f"[red]Error:[/red] Failed to add item: {e}")
