@@ -8,7 +8,7 @@ from rich.table import Table
 from rich.console import Console
 from rich.text import Text
 
-from logic_layer import inventory_count
+from logic_layer import inventory_count, validate_expiry_date
 
 DATE_FORMAT = "%d/%m/%Y"
 console = Console()
@@ -155,10 +155,16 @@ def add_food_item(inventory):
     name = input("Enter food name: ").strip()
     qty = input("Enter quantity: ").strip()
     exp_date = input(f"Enter expiry date ({DATE_FORMAT}): ").strip()
+
+    # Reject the item if the expiry date is invalid or more than MAX_YEARS away
+    exp_dt, error = validate_expiry_date(exp_date)
+    if error:
+        print(f"[red]Error:[/red] {error}")
+        return
+
     purch_date = datetime.now().strftime(DATE_FORMAT)
 
     try:
-        exp_dt = datetime.strptime(exp_date, DATE_FORMAT).date()
         days_rem = (exp_dt - datetime.now().date()).days
         if days_rem <= 0:
             status = "EXPIRED"
