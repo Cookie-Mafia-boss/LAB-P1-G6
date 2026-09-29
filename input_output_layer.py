@@ -8,7 +8,7 @@ from rich.table import Table
 from rich.console import Console
 from rich.text import Text
 
-from logic_layer import inventory_count, validate_expiry_date
+from logic_layer import inventory_count, validate_expiry_date, validate_food_name
 from data_layer import save_item_to_csv
 
 DATE_FORMAT = "%d/%m/%Y"
@@ -153,11 +153,11 @@ def expire_alert(expiring_inventory):
 def add_food_item(inventory):
     """Stub function to allow adding items manually."""
     print("\n--- Add New Food Item ---")
-    name = input("Enter food name: ").strip()
 
-    # Reject the item if the food name is empty
-    if not name:
-        print("[red]Error:[/red] Food name cannot be empty.")
+    # Reject the item if the food name is empty or purely numeric
+    name, error = validate_food_name(input("Enter food name: "))
+    if error:
+        print(f"[red]Error:[/red] {error}")
         return
 
     qty = input("Enter quantity: ").strip()

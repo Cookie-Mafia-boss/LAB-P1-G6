@@ -32,13 +32,13 @@ def validate_expiry_date(date_str: str, max_years: int = MAX_YEARS):
 
 def validate_food_name(name: str):
     "Rejects empty names and integer inputs"
-    cleaned = name.strip
+    cleaned = name.strip()
 
     if not cleaned:
         return None, "Food name cannot be empty."
 
     if re.fullmatch(r"[+-]?\d+(\.\d+)?", cleaned):
-        return None, "Food name cannot be a number. Please enter a valid food name (e.g. Milk)."
+        return None, "Food name cannot be a number. Please enter a valid food name."
 
     return cleaned, None
 
