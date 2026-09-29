@@ -49,7 +49,7 @@ def initialise_inventory():
                 days_remaining = (exp_date - today).days
 
                 # Determine status
-                if days_remaining <= 0:
+                if days_remaining < 0:
                     status = "EXPIRED"
                 elif days_remaining <= 30:
                     status = "EXPIRING"
