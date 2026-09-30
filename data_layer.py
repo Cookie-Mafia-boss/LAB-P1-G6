@@ -75,8 +75,6 @@ def initialise_inventory():
     return inventory
 
 
-
-
 def save_inventory(items):
     if len(items) != 0:
         with open(FILENAME, mode="w", newline="", encoding="utf-8-sig") as file:
