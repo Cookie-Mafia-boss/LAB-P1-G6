@@ -8,7 +8,7 @@ from rich.table import Table
 from rich.console import Console
 from rich.text import Text
 
-from logic_layer import inventory_count, validate_expiry_date, validate_food_name
+from logic_layer import inventory_count, validate_expiry_date, validate_food_name, validate_qty
 
 DATE_FORMAT = "%d/%m/%Y"
 console = Console()
@@ -159,12 +159,18 @@ def add_food_item(inventory):
     serial_num_str = f"{str(serial_num).zfill(4)}"
 
     # Reject the item if the food name is empty or purely numeric
-    name, error = input("Enter food name: ").strip()
+    name, error = validate_food_name(input("Enter food name: "))
     if error:
         print(f"[red]Error:[/red] {error}")
         return
      
-    qty = input("Enter quantity: ").strip()
+    qty_input = input("Enter quantity: ").strip()
+
+    qty, error = validate_qty(qty_input)
+    if error:
+        print(f"[red]Error:[/red] {error}")
+        return
+
     exp_date = input(f"Enter expiry date ({DATE_FORMAT}): ").strip()
 
     # Reject the item if the expiry date is invalid or more than MAX_YEARS away
@@ -231,9 +237,24 @@ def update_food_item(inventory):
     for item in inventory:
         if item["Serial_Number"] == serial_number:
             found = True
-            name = input("Enter food name: ").strip()
-            qty = input("Enter quantity: ").strip()
+            name, error = validate_food_name(input("Enter food name: "))
+            if error:
+                print(f"[red]Error:[/red] {error}")
+                return
+            
+            qty_input = input("Enter quantity: ").strip()
+            qty, error = validate_qty(qty_input)
+            if error:
+                print(f"[red]Error:[/red] {error}")
+                return
+
+
             exp_date = input(f"Enter expiry date ({DATE_FORMAT}): ").strip()
+            exp_dt, error = validate_expiry_date(exp_date)
+            if error:
+                print(f"[red]Error:[/red] {error}")
+                return
+            
             purch_date = datetime.now().strftime(DATE_FORMAT)
             try:
                     exp_dt = datetime.strptime(exp_date, DATE_FORMAT).date()
