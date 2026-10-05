@@ -1,0 +1,9 @@
+FROM python:3.11-slim
+WORKDIR /app
+COPY ai_layer.py .
+COPY data_layer.py .
+COPY input_output_layer.py .
+COPY logic_layer.py .
+COPY main.py .
+COPY food_inventory_dataset.csv .
+CMD ["python", "main.py"]
