@@ -1,51 +1,46 @@
-Food_Name,Expiry_Date,Date_Purchased,Inventory_Quantity
-Full Cream Milk,5/10/2026,20/9/2026,4
-Cheddar Cheese,15/11/2026,18/9/2026,2
-Greek Yogurt,1/10/2026,22/9/2026,6
-Butter Unsalted,10/12/2026,10/9/2026,3
-Heavy Cream,8/10/2026,21/9/2026,1
-Mozzarella Cheese,20/10/2026,15/9/2026,2
-Cottage Cheese,12/10/2026,19/9/2026,2
-Sour Cream,18/10/2026,20/9/2026,1
-Fresh Salmon Fillet,25/9/2026,22/9/2026,3
-Ground Beef 80/20,28/9/2026,21/9/2026,5
-Chicken Breast,29/9/2026,20/9/2026,8
-Pork Chops,27/9/2026,21/9/2026,4
-Bacon Strip Pack,15/10/2026,18/9/2026,3
-Raw Shrimp,26/9/2026,22/9/2026,2
-Ribeye Steak,28/9/2026,22/9/2026,2
-Organic Spinach,27/9/2026,21/9/2026,2
-Gala Apples,12/10/2026,15/9/2026,12
-Avocados,26/9/2026,21/9/2026,4
-Bananas,28/9/2026,22/9/2026,7
-Carrots 1kg,20/10/2026,18/9/2026,1
-Yellow Onions,1/11/2026,10/9/2026,5
-Russet Potatoes 5kg,15/11/2026,10/9/2026,1
-Broccoli Crown,29/9/2026,21/9/2026,3
-Cherry Tomatoes,30/9/2026,22/9/2026,2
-Whole Wheat Bread,30/9/2026,22/9/2026,2
-Sourdough Loaf,27/9/2026,21/9/2026,1
-Bagels 6-pack,2/10/2026,22/9/2026,1
-Croissants 4-pack,25/9/2026,21/9/2026,2
-Pita Bread,5/10/2026,19/9/2026,3
-Canned Black Beans,10/8/2027,10/9/2026,10
-Extra Virgin Olive Oil,1/12/2027,15/8/2026,1
-Jasmine Rice 5kg,30/6/2027,1/9/2026,1
-Penne Pasta,15/1/2028,20/8/2026,4
-Canned Diced Tomatoes,10/10/2027,5/9/2026,8
-Peanut Butter,20/5/2027,10/8/2026,2
-Rolled Oats,12/3/2027,1/9/2026,2
-Soy Sauce,1/5/2028,15/7/2026,1
-Granulated Sugar,1/9/2028,10/6/2026,1
-All-Purpose Flour,15/9/2027,1/8/2026,2
-Frozen Mixed Vegetables,15/3/2027,5/9/2026,3
-Vanilla Ice Cream,20/1/2027,12/9/2026,2
-Frozen Blueberries,10/5/2027,1/9/2026,2
-Frozen Pizza,18/2/2027,14/9/2026,4
-Frozen Chicken Nuggets,1/4/2027,10/9/2026,2
-Orange Juice,10/10/2026,20/9/2026,2
-Sparkling Water 12-pack,1/3/2027,5/9/2026,3
-Ground Coffee,15/2/2027,1/9/2026,2
-Green Tea Bags,20/8/2027,10/8/2026,1
-Almond Milk,25/10/2026,18/9/2026,3
-Frozen Salmon,20/07/2027,19/06/2026,400
+﻿Serial_Number,Food_Name,Expiry_Date,Date_Purchased,Inventory_Quantity,Days_Remaining,Status
+0001,apple juice,10/12/2026,29/09/2026,5,71,FRESH
+0002,Butter Unsalted,10/12/2026,10/9/2026,3,71,FRESH
+0003,Heavy Cream,8/10/2026,21/9/2026,1,8,EXPIRING
+0004,Mozzarella Cheese,20/10/2026,15/9/2026,2,20,EXPIRING
+0005,Cottage Cheese,12/10/2026,19/9/2026,2,12,EXPIRING
+0006,Sour Cream,18/10/2026,20/9/2026,1,18,EXPIRING
+0007,Fresh Salmon Fillet,25/9/2026,22/9/2026,3,-5,EXPIRED
+0008,Ground Beef 80/20,28/9/2026,21/9/2026,5,-2,EXPIRED
+0009,Chicken Breast,29/9/2026,20/9/2026,8,-1,EXPIRED
+0010,Pork Chops,27/9/2026,21/9/2026,4,-3,EXPIRED
+0011,Bacon Strip Pack,15/10/2026,18/9/2026,3,15,EXPIRING
+0012,Raw Shrimp,26/9/2026,22/9/2026,2,-4,EXPIRED
+0013,Ribeye Steak,28/9/2026,22/9/2026,2,-2,EXPIRED
+0014,Organic Spinach,27/9/2026,21/9/2026,2,-3,EXPIRED
+0015,Gala Apples,12/10/2026,15/9/2026,12,12,EXPIRING
+0016,Avocados,26/9/2026,21/9/2026,4,-4,EXPIRED
+0017,Bananas,28/9/2026,22/9/2026,7,-2,EXPIRED
+0018,Carrots 1kg,20/10/2026,18/9/2026,1,20,EXPIRING
+0019,Yellow Onions,1/11/2026,10/9/2026,5,32,FRESH
+0020,Russet Potatoes 5kg,15/11/2026,10/9/2026,1,46,FRESH
+0021,Broccoli Crown,29/9/2026,21/9/2026,3,-1,EXPIRED
+0022,Cherry Tomatoes,30/9/2026,22/9/2026,2,0,EXPIRED
+0023,Whole Wheat Bread,30/9/2026,22/9/2026,2,0,EXPIRED
+0024,Sourdough Loaf,27/9/2026,21/9/2026,1,-3,EXPIRED
+0025,Bagels 6-pack,2/10/2026,22/9/2026,1,2,EXPIRING
+0026,Croissants 4-pack,25/9/2026,21/9/2026,2,-5,EXPIRED
+0027,Pita Bread,5/10/2026,19/9/2026,3,5,EXPIRING
+0028,Canned Black Beans,10/8/2027,10/9/2026,10,314,FRESH
+0029,Extra Virgin Olive Oil,1/12/2027,15/8/2026,1,427,FRESH
+0030,Jasmine Rice 5kg,30/6/2027,1/9/2026,1,273,FRESH
+0031,Penne Pasta,15/1/2028,20/8/2026,4,472,FRESH
+0032,Canned Diced Tomatoes,10/10/2027,5/9/2026,8,375,FRESH
+0033,Peanut Butter,20/5/2027,10/8/2026,2,232,FRESH
+0034,Rolled Oats,12/3/2027,1/9/2026,2,163,FRESH
+0035,Soy Sauce,1/5/2028,15/7/2026,1,579,FRESH
+0036,Granulated Sugar,1/9/2028,10/6/2026,1,702,FRESH
+0037,All-Purpose Flour,15/9/2027,1/8/2026,2,350,FRESH
+0038,Frozen Mixed Vegetables,15/3/2027,5/9/2026,3,166,FRESH
+0039,Vanilla Ice Cream,20/1/2027,12/9/2026,2,112,FRESH
+0040,Frozen Blueberries,10/5/2027,1/9/2026,2,222,FRESH
+0041,Frozen Pizza,18/2/2027,14/9/2026,4,141,FRESH
+0042,Sparkling Water 12-pack,1/3/2027,5/9/2026,3,152,FRESH
+0043,orange,10/10/2026,30/09/2026,4,10,EXPIRING
+0044,nasi padang,02/10/2026,30/09/2026,2,2,EXPIRING
+0045,blueband,02/10/2028,30/09/2026,2,733,FRESH

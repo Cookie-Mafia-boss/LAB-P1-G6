@@ -8,7 +8,7 @@ from rich.table import Table
 from rich.console import Console
 from rich.text import Text
 
-from logic_layer import inventory_count
+from logic_layer import inventory_count, validate_expiry_date, validate_food_name, validate_qty
 
 DATE_FORMAT = "%d/%m/%Y"
 console = Console()
@@ -21,7 +21,8 @@ console = Console()
 def display_items(inventory, title):
     """Display inventory as a formatted table."""
     table = Table(title=title, show_header=True, header_style="bold purple")
-    table.add_column("Food Name", no_wrap=True)
+    table.add_column("Serial Number", no_wrap=True)
+    table.add_column("Food Name", justify="center")
     table.add_column("Qty", style="cyan", justify="center")
     table.add_column("Expiry Date", style="cyan", justify="center")
     table.add_column("Days Left", style="cyan", justify="center")
@@ -39,12 +40,14 @@ def display_items(inventory, title):
             status_formatted = raw_status
 
         table.add_row(
+            item["Serial_Number"],
             item["Food_Name"],
             str(item["Inventory_Quantity"]),
             item["Expiry_Date"],
             str(item["Days_Remaining"]),
             status_formatted
         )
+        print(item["Serial_Number"])
     return table
 
 
@@ -152,13 +155,33 @@ def expire_alert(expiring_inventory):
 def add_food_item(inventory):
     """Stub function to allow adding items manually."""
     print("\n--- Add New Food Item ---")
-    name = input("Enter food name: ").strip()
-    qty = input("Enter quantity: ").strip()
+    serial_num = len(inventory) + 1
+    serial_num_str = f"{str(serial_num).zfill(4)}"
+
+    # Reject the item if the food name is empty or purely numeric
+    name, error = validate_food_name(input("Enter food name: "))
+    if error:
+        print(f"[red]Error:[/red] {error}")
+        return
+     
+    qty_input = input("Enter quantity: ").strip()
+
+    qty, error = validate_qty(qty_input)
+    if error:
+        print(f"[red]Error:[/red] {error}")
+        return
+
     exp_date = input(f"Enter expiry date ({DATE_FORMAT}): ").strip()
+
+    # Reject the item if the expiry date is invalid or more than MAX_YEARS away
+    exp_dt, error = validate_expiry_date(exp_date)
+    if error:
+        print(f"[red]Error:[/red] {error}")
+        return
+
     purch_date = datetime.now().strftime(DATE_FORMAT)
 
     try:
-        exp_dt = datetime.strptime(exp_date, DATE_FORMAT).date()
         days_rem = (exp_dt - datetime.now().date()).days
         if days_rem <= 0:
             status = "EXPIRED"
@@ -168,6 +191,7 @@ def add_food_item(inventory):
             status = "FRESH"
 
         inventory.append({
+            "Serial_Number": serial_num_str,
             "Food_Name": name,
             "Expiry_Date": exp_date,
             "Date_Purchased": purch_date,
@@ -175,6 +199,88 @@ def add_food_item(inventory):
             "Days_Remaining": days_rem,
             "Status": status
         })
+
         print(f"[green]Success:[/green] Added '{name}' successfully!")
+
     except Exception as e:
         print(f"[red]Error:[/red] Failed to add item: {e}")
+
+
+def _renumber_serial_numbers(inventory):
+    """Renumber serial numbers sequentially (0001, 0002, ...) after deletion."""
+    for index, item in enumerate(inventory, start=1):
+        item["Serial_Number"] = f"{str(index).zfill(4)}"
+
+
+
+
+
+def delete_food_item(inventory):
+    serial_number = input("Input Serial Number to delete: ")
+    found = False
+    for item in inventory:
+        if item["Serial_Number"] == serial_number:
+            found = True
+            inventory.remove(item)
+
+    if found:
+        # Renumber remaining items to maintain sequential order
+        _renumber_serial_numbers(inventory)
+        print("\nItem successfully deleted")
+    else:
+        print("\nSerial Number not found")
+            
+
+def update_food_item(inventory):
+    serial_number = input("Input Serial Number to update: ")
+    found = False
+    for item in inventory:
+        if item["Serial_Number"] == serial_number:
+            found = True
+            name, error = validate_food_name(input("Enter food name: "))
+            if error:
+                print(f"[red]Error:[/red] {error}")
+                return
+            
+            qty_input = input("Enter quantity: ").strip()
+            qty, error = validate_qty(qty_input)
+            if error:
+                print(f"[red]Error:[/red] {error}")
+                return
+
+
+            exp_date = input(f"Enter expiry date ({DATE_FORMAT}): ").strip()
+            exp_dt, error = validate_expiry_date(exp_date)
+            if error:
+                print(f"[red]Error:[/red] {error}")
+                return
+            
+            purch_date = datetime.now().strftime(DATE_FORMAT)
+            try:
+                    exp_dt = datetime.strptime(exp_date, DATE_FORMAT).date()
+                    days_rem = (exp_dt - datetime.now().date()).days
+                    if days_rem <= 0:
+                        status = "EXPIRED"
+                    elif days_rem <= 30:
+                        status = "EXPIRING"
+                    else:
+                        status = "FRESH"
+            except Exception as e:
+                    print(f"[red]Error:[/red] Failed to update item: {e}")
+
+            item["Food_Name"] = name
+            item["Expiry_Date"] = exp_date
+            item["Date_Purchased"] = purch_date
+            item["Inventory_Quantity"] = int(qty)
+            item["Days_Remaining"] = days_rem
+            item["Status"] = status
+
+            
+
+    if found != True:
+        print("Item not found")
+    else:
+        print("\nItem updated")
+
+            
+

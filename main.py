@@ -4,10 +4,10 @@ from rich.console import Console
 
 console = Console()
 
-from data_layer import initialise_inventory
+from data_layer import initialise_inventory, save_inventory
 from logic_layer import check_expiries
 from ai_layer import get_ai_suggestions
-from input_output_layer import display_items, raise_alert, add_food_item, display_ai_suggestions, display_ai_summary_stats
+from input_output_layer import display_items, raise_alert, add_food_item, display_ai_suggestions, display_ai_summary_stats, delete_food_item, update_food_item
 
 
 # ==========================================
@@ -28,9 +28,17 @@ def main_menu():
         print(f"Current time : {system_time}")
         print("1. View Inventory")
         print("2. Add New Food Item")
+<<<<<<< HEAD
         print("3. Check Expiry Alerts")
         print("4. Get AI suggestions for expired food,waste trends and resupplying recommendations")
         print("5. Exit")
+=======
+        print("3. Delete Food Item")
+        print("4. Update Food Item")
+        print("5. Check Expiry Alerts")
+        print("6. Get AI suggestions for expired food and waste trends")
+        print("7. Exit")
+>>>>>>> 869ef7e772f05146c550ded1351cba3b08a2f818
 
         choice = input("Select an option (1-5): ").strip()
 
@@ -39,6 +47,10 @@ def main_menu():
         elif choice == "2":
             add_food_item(inventory)
         elif choice == "3":
+            delete_food_item(inventory)
+        elif choice == "4":
+            update_food_item(inventory)
+        elif choice == "5":
             try:
                 days = input("Enter warning threshold in days [Default: 30]: ").strip()
                 days = int(days) if days else 30
@@ -49,17 +61,19 @@ def main_menu():
                 print(display_items(expiring, f"Items Expiring Within {days} Days"))
             else:
                 print(f"✅ No items expiring within {days} days.")
-        elif choice == "4":
+        elif choice == "6":
             expiring = check_expiries(inventory)
             console.print("[cyan]Analyzing inventory with AI...[/cyan]")
             sections = get_ai_suggestions(inventory, expiring)
             display_ai_suggestions(sections)
             display_ai_summary_stats(inventory, expiring)
-        elif choice == "5":
+        elif choice == "7":
             print("Exiting application. Goodbye!")
             break
         else:
             print("Invalid selection. Please enter a number from 1 to 5.")
+
+        save_inventory(inventory)
 
 
 if __name__ == "__main__":
