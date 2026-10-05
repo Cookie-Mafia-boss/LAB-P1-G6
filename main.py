@@ -29,7 +29,7 @@ def main_menu():
         print("1. View Inventory")
         print("2. Add New Food Item")
         print("3. Check Expiry Alerts")
-        print("4. Get AI suggestions for expired food and waste trends")
+        print("4. Get AI suggestions for expired food,waste trends and resupplying recommendations")
         print("5. Exit")
 
         choice = input("Select an option (1-5): ").strip()
