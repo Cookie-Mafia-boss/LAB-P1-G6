@@ -8,8 +8,12 @@ COPY data_layer.py .
 COPY input_output_layer.py .
 COPY logic_layer.py .
 COPY food_inventory_dataset.csv .
+COPY test_script.py . 
 COPY main.py .
 
+
+COPY dependency.txt .
+RUN pip install --no-cache-dir -r dependency.txt
 
 CMD  ["python", "main.py"]
 

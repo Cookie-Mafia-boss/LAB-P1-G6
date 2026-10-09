@@ -61,8 +61,6 @@ def check_expiries(inventory, alert_days=30):
     # Sort items according to Days Remaining
     return sorted(expiring_soon_items, key=lambda x: x['Days_Remaining'])
 
-<<<<<<< HEAD
-=======
 
 def validate_qty(qty):
     error_msg = "Qty should be a positive integer"
@@ -77,6 +75,5 @@ def validate_qty(qty):
     return qty, None
 
 
->>>>>>> 869ef7e772f05146c550ded1351cba3b08a2f818
 def inventory_count(inventory):
     return len(inventory)

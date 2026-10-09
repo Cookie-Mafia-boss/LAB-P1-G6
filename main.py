@@ -28,19 +28,13 @@ def main_menu():
         print(f"Current time : {system_time}")
         print("1. View Inventory")
         print("2. Add New Food Item")
-<<<<<<< HEAD
-        print("3. Check Expiry Alerts")
-        print("4. Get AI suggestions for expired food,waste trends and resupplying recommendations")
-        print("5. Exit")
-=======
         print("3. Delete Food Item")
         print("4. Update Food Item")
         print("5. Check Expiry Alerts")
         print("6. Get AI suggestions for expired food and waste trends")
         print("7. Exit")
->>>>>>> 869ef7e772f05146c550ded1351cba3b08a2f818
 
-        choice = input("Select an option (1-5): ").strip()
+        choice = input("Select an option (1-7): ").strip()
 
         if choice == "1":
             print(display_items(inventory, "Current Food Inventory"))
@@ -71,7 +65,7 @@ def main_menu():
             print("Exiting application. Goodbye!")
             break
         else:
-            print("Invalid selection. Please enter a number from 1 to 5.")
+            print("Invalid selection. Please enter a number from 1 to 7.")
 
         save_inventory(inventory)
 
