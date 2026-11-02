@@ -3,6 +3,9 @@ import os
 from datetime import datetime
 from rich import print
 
+from classes.inventory import Inventory
+from classes.item import Item
+
 FILENAME = "./food_inventory_dataset.csv"
 DATE_FORMAT = "%d/%m/%Y"
 FIELDNAMES = [
@@ -19,7 +22,7 @@ FIELDNAMES = [
 # Initialises inventory object on start from csv file
 def initialise_inventory():
     """Loads inventory items from the CSV file if it exists."""
-    inventory = []
+    inventory = Inventory()  # Create an Inventory object
 
     if not os.path.exists(FILENAME):
         print(f"[yellow]Warning:[/yellow] File '{FILENAME}' not found. Starting with an empty inventory.")
@@ -55,30 +58,55 @@ def initialise_inventory():
                 else:
                     status = "FRESH"
 
+                # try:
+                #     inventory.append({
+                #         "Serial_Number": serial_number,
+                #         "Food_Name": food_name,
+                #         "Expiry_Date": expiry_date,
+                #         "Date_Purchased": date_purchased,
+                #         "Inventory_Quantity": int(quantity_str),
+                #         "Days_Remaining": int(days_remaining),
+                #         "Status": status
+                #     })
+                # except ValueError:  
+                #     continue  # Skip row if quantity is not a valid integer
                 try:
-                    inventory.append({
-                        "Serial_Number": serial_number,
-                        "Food_Name": food_name,
-                        "Expiry_Date": expiry_date,
-                        "Date_Purchased": date_purchased,
-                        "Inventory_Quantity": int(quantity_str),
-                        "Days_Remaining": int(days_remaining),
-                        "Status": status
-                    })
+                    inventory.add_item(Item(
+                        serial_number,
+                        food_name,
+                        expiry_date,
+                        date_purchased,
+                        int(quantity_str)
+                    ))
                 except ValueError:  
                     continue  # Skip row if quantity is not a valid integer
 
-        print(f"[green]Success:[/green] Successfully loaded {len(inventory)} items from '{FILENAME}'.")
+        print(f"[green]Success:[/green] Successfully loaded {inventory.get_length()} items from '{FILENAME}'.")
     except Exception as e:
         print(f"[red]Error:[/red] Error reading file: {e}")
 
     return inventory
 
 
-def save_inventory(items):
-    if len(items) != 0:
-        with open(FILENAME, mode="w", newline="", encoding="utf-8-sig") as file:
-            writer = csv.DictWriter(file, fieldnames=FIELDNAMES)
-            writer.writeheader()
-            writer.writerows(items)
+# def save_inventory(items):
+#     if len(items) != 0:
+#         with open(FILENAME, mode="w", newline="", encoding="utf-8-sig") as file:
+#             writer = csv.DictWriter(file, fieldnames=FIELDNAMES)
+#             writer.writeheader()
+#             writer.writerows(items)
+
+def save_inventory(inventory):
+    with open(FILENAME, mode="w", newline="", encoding="utf-8-sig") as file:
+        writer = csv.DictWriter(file, fieldnames=FIELDNAMES)
+        writer.writeheader()
+        for item in inventory.get_items():
+            writer.writerow({
+                "Serial_Number": item.serial_number,
+                "Food_Name": item.food_name,
+                "Expiry_Date": item.expiry_date,
+                "Date_Purchased": item.date_purchased,
+                "Inventory_Quantity": item.inventory_quantity,
+                "Days_Remaining": item.days_remaining,
+                "Status": item.status,
+            })
 
