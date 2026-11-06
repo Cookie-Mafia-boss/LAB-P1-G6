@@ -1,86 +1,51 @@
 import json
-from google import genai
-import warnings
+from classes.ai_prompt import BasePromptBuilder, KitchenPromptBuilder
+from classes.ai_client import BaseLLMClient, GeminiClient
+from classes.ai_data_validation import AISuggestionResponse, get_safe_default
 
+class AIService:
+    def __init__(self, client: BaseLLMClient = None, prompt_builder: BasePromptBuilder = None):
+        # Injects dependencies rather than creating them here
+        self.client = client or GeminiClient()
+        self.prompt_builder = prompt_builder or KitchenPromptBuilder()
 
-def _parse_ai_response(response_text: str) -> dict:
-    """Parse AI response into 4 sections based on headers."""
-    sections = {"recipes": "", "waste_trends": "", "immediate_action": "", "resupply": ""}
-    current = None
+    def process_inventory(self, inventory: list) -> AISuggestionResponse:
+        """Orchestrates: Build Prompt -> Call API -> Parse -> Validate -> Apply Domain Rule"""
+        
+        # If inventory is empty, it will return a safe default immediately
+        if not inventory:
+            return get_safe_default()
 
-    keywords = {
-        "recipe": "recipes",
-        "waste trend": "waste_trends",
-        "waste prevention": "waste_trends",
-        "immediate action": "immediate_action",
-        "resupply": "resupply",
-        "restock": "resupply"
-    }
+        prompt = self.prompt_builder.build_prompt(inventory)
 
-    for line in response_text.split('\n'):
-        lower = line.lower().strip()
-        for kw, section in keywords.items():
-            if kw in lower and (line.startswith('#') or line.startswith('**') or line.isupper()):
-                current = section
-                break
-        if current:
-            sections[current] += line + '\n'
-
-    if not any(sections.values()):
-        sections["recipes"] = response_text
-
-    return sections
-
-
-def get_ai_suggestions(inventory, expiring_items):
-    """Call Gemini API and return parsed sections."""
-    if not inventory:
-        return None
-
-    expired_list = [item['Food_Name'] for item in inventory if item['Status'] == 'EXPIRED']
-    expiring_list = [item['Food_Name'] for item in expiring_items]
-
-    payload = {
-        "total_items": len(inventory),
-        "expired_items": expired_list,
-        "expiring_soon": expiring_list,
-        "raw_inventory": inventory
-    }
-
-    prompt = f"""
-    You are an AI kitchen assistant and food waste prevention specialist.
-    Based on this inventory data, provide a structured response with these EXACT section headers:
-
-    ### RECIPES TO PRIORITIZE
-    2-3 actionable, delicious recipes using items with fewest days remaining.
-
-    ### WASTE TRENDS
-    How much food wasted due to expiry / potentially wasted / saved before expiry.
-
-    ### IMMEDIATE ACTION REQUIRED
-    Items requiring immediate attention.
-
-    ### RESUPPLY RECOMMENDATIONS
-    Prevent overstocking suggestions.
-
-    Inventory Data:
-    {json.dumps(payload, indent=2)}
-    """
+        try:
+            # 1. Calls the API
+            raw_response = self.client.generate_response(prompt)
             
-    warnings.filterwarnings(
-        "ignore",
-        message="Interactions usage is experimental",
-        category=UserWarning,
-    )
+            # 2. Parse JSON (It can also handle a malformed JSON safely)
+            parsed_data = json.loads(raw_response)
+            
+            # 3. Validates using Pydantic
+            validated_response = AISuggestionResponse(**parsed_data)
+            
+            # 4. Apply a Multi-Condition Domain Rule
+            validated_response = self._apply_domain_rules(validated_response)
+            
+            return validated_response
 
-    try:
-        client = genai.Client()
-        interaction = client.interactions.create(
-            model="gemini-3.8-flash",
-            input=prompt
-        )
-        response_text = interaction.output_text
-    except Exception as e:
-        return {"error": str(e)}
+        except Exception as e:
+            #Handles connection/parsing/validation failures
+            print(f"[AI Layer Error] Processing failed: {e}")
+            return get_safe_default()
 
-    return _parse_ai_response(response_text)
+    def _apply_domain_rules(self, response: AISuggestionResponse) -> AISuggestionResponse:
+        """
+        The Multi-condition rule uses two or more fields from the AI response.
+        Rule: If Risk Level is 'High' AND the days_remaining <= 2, 
+        it will override the action to force an immediate alert.
+        """
+        for item in response.items:
+            if item.waste_risk_level.lower() == "high" and item.days_remaining <= 2:
+                item.recommended_action = "CRITICAL: Use it immediately before its expiry!"
+        
+        return response
