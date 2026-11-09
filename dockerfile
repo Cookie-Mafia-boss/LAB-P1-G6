@@ -20,7 +20,7 @@ CMD  ["python", "main.py"]
 #the . is very important It tells Docker to look for the Dockerfile inside the current directory.
 
 #docker commands 
-# docker build 
+#docker build 
 #docker build  -t inf1103-labs-smart-auditor-persistence .    
 
 # this is the example for how to run the docker image

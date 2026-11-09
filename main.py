@@ -9,7 +9,7 @@ from logic_layer import check_expiries
 from ai_layer import get_ai_suggestions
 from input_output_layer import display_items, raise_alert, add_food_item, display_ai_suggestions, display_ai_summary_stats, delete_food_item, update_food_item
 
-
+#Encapsulates the application controller logic into a FoodWasteApp class.
 # ==========================================
 # MAIN MENU LOOP
 # ==========================================

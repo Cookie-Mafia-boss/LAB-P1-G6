@@ -1,3 +1,5 @@
+#$env:GEMINI_API_KEY="your_actual_api_key_here" ===> initialise this first.....
+#docker run --rm -it -e GEMINI_API_KEY="your_actual_gemini_api_key" food-waste-management-system
 import json
 from google import genai
 import warnings
