@@ -8,12 +8,121 @@ from rich.table import Table
 from rich.console import Console
 from rich.text import Text
 
-from classes import inventory
+#from classes.inventory import Inventory
 from classes.item import Item
-from logic_layer import inventory_count, validate_expiry_date, validate_food_name, validate_qty
+from logic_layer import validate_expiry_date, validate_food_name, validate_qty
 
 DATE_FORMAT = "%d/%m/%Y"
 console = Console()
+
+# ==========================================
+# NEW AI RESPONSE RENDERING (Pydantic model)
+# ==========================================
+
+def display_ai_response(response):
+    """Render an AISuggestionResponse (from ai_service / ai_data_validation).
+
+    Schema (confirmed via classes/ai_prompt.py):
+        response.items[*] : food_name, waste_risk_level, days_remaining,
+                            recommended_action
+        response.waste_trend_summary       : str
+        response.resupply_recommendations  : str
+        response.recipe_suggestions        : list[str]
+    """
+    items = getattr(response, "items", None) or []
+
+    if not items:
+        console.print(Panel(
+            "[dim]No AI suggestions available (empty inventory "
+            "or safe default returned by ai_service).[/dim]",
+            title="AI Suggestions", border_style="dim",
+        ))
+        return
+
+    console.print(Panel(
+        Text("AI Food-Waste Suggestions", style="bold cyan", justify="center"),
+        border_style="cyan", padding=(0, 1),
+    ))
+
+    # --- per-item table ------------------------------------------------
+    table = Table(show_header=True, header_style="bold purple")
+    table.add_column("Item", style="bold")
+    table.add_column("Days Left", justify="center")
+    table.add_column("Waste Risk", justify="center")
+    table.add_column("Recommended Action", overflow="fold")
+
+    risk_colour = {"HIGH": "red", "MEDIUM": "yellow", "LOW": "green"}
+
+    for row in items:
+        risk = (row.waste_risk_level or "").upper()
+        risk_fmt = (
+            f"[bold {risk_colour[risk]}]{risk}[/bold {risk_colour[risk]}]"
+            if risk in risk_colour else risk
+        )
+
+        action = row.recommended_action or ""
+        action_fmt = (
+            f"[bold red]{action}[/bold red]"
+            if action.startswith("CRITICAL") else action
+        )
+
+        table.add_row(
+            row.food_name,
+            str(row.days_remaining),
+            risk_fmt,
+            action_fmt,
+        )
+
+    console.print(table)
+
+    # --- top-level narrative sections ---------------------------------
+    if getattr(response, "waste_trend_summary", ""):
+        console.print(Panel(
+            Markdown(_safe(response.waste_trend_summary)),
+            title="Waste Trend Summary",
+            border_style="blue", title_align="left",
+        ))
+
+    if getattr(response, "resupply_recommendations", ""):
+        console.print(Panel(
+            Markdown(_safe(response.resupply_recommendations)),
+            title="Resupply Recommendations",
+            border_style="magenta", title_align="left",
+        ))
+
+    recipes = getattr(response, "recipe_suggestions", None) or []
+    if recipes:
+        body = "\n".join(f"- {_safe(r)}" for r in recipes)
+        console.print(Panel(
+            Markdown(body),
+            title="Recipe Suggestions",
+            border_style="green", title_align="left",
+        ))
+
+
+def display_inventory_stats(inventory):
+    """Quick stats — corrected for the current Item/Inventory classes."""
+    items = inventory.get_items()
+    total = len(items)
+    expired = sum(1 for i in items if i.status == "EXPIRED")
+    expiring = sum(1 for i in items if i.status == "EXPIRING")
+    fresh = total - expired - expiring
+
+    stats = Table(show_header=False, box=None, padding=(0, 2))
+    stats.add_column(style="bold")
+    stats.add_column(justify="right")
+    stats.add_row("Total Items", str(total))
+    stats.add_row("[red]Expired[/red]", str(expired))
+    stats.add_row("[yellow]Expiring Soon[/yellow]", str(expiring))
+    stats.add_row("[green]Fresh[/green]", str(fresh))
+
+    console.print(Panel(stats, title="Quick Stats",
+                        border_style="dim cyan", padding=(1, 2)))
+
+
+def _safe(text: str) -> str:
+    """Windows-cp1252-safe encoding (mirrors _create_panel)."""
+    return text.encode("cp1252", errors="replace").decode("cp1252")
 
 
 # ==========================================

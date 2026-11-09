@@ -10,10 +10,14 @@ class AIItemAnalysis(BaseModel):
 
 # 2. Define the schema for the overall AI response
 class AISuggestionResponse(BaseModel):
-    items: List[AIItemAnalysis] = Field(description = "List of analyzed food items")
-    waste_trend_summary: str = Field(description = "A brief summary of how much food is wasted vs saved")
-    resupply_recommendations: str = Field(description = "Suggestions to prevent overstocking")
-    recipe_suggestions: List[str] = Field(description = "2-3 actionable recipes prioritizing high-risk items")
+    items: List[AIItemAnalysis] = Field(default_factory=list,
+        description="List of analyzed food items")
+    waste_trend_summary: str = Field(default="",
+        description="A brief summary of how much food is wasted vs saved")
+    resupply_recommendations: str = Field(default="",
+        description="Suggestions to prevent overstocking")
+    recipe_suggestions: List[str] = Field(default_factory=list,
+        description="2-3 actionable recipes prioritizing high-risk items")
 
 # 3. The Safe Default Object
 # Returned if the API fails so the app doesn't crash
