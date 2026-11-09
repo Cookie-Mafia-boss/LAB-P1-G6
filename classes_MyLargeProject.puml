@@ -1,0 +1,128 @@
+@startuml classes_MyLargeProject
+set namespaceSeparator none
+class "AIItemAnalysis" as ai_data_validation.AIItemAnalysis {
+  days_remaining : int
+  food_name : str
+  recommended_action : str
+  waste_risk_level : str
+}
+class "AIService" as ai_layer.AIService {
+  client : GeminiClient
+  prompt_builder : KitchenPromptBuilder
+  process_inventory(inventory: list) -> AISuggestionResponse
+}
+class "AISuggestionResponse" as ai_data_validation.AISuggestionResponse {
+  items : List[AIItemAnalysis]
+  recipe_suggestions : List[str]
+  resupply_recommendations : str
+  waste_trend_summary : str
+}
+class "BaseLLMClient" as ai_client.BaseLLMClient {
+  {abstract}generate_response(prompt: str) -> str
+}
+class "BasePromptBuilder" as ai_prompt.BasePromptBuilder {
+  {abstract}build_prompt(inventory: list) -> str
+}
+class "CSVMigrator" as csv_migrator.CSVMigrator {
+  EXPECTED_COLUMNS : set
+  data_manager
+  date_format : str
+  migrate(csv_path, skip_duplicates)
+}
+class "<color:red>DataLayerError</color>" as data_exceptions.DataLayerError {
+}
+class "DataManager" as data_manager.DataManager {
+  repository
+  add_item(item, inventory)
+  close()
+  delete_item(serial_number, inventory)
+  filter_items_by_status(status)
+  get_all_items()
+  get_item(serial_number)
+  is_csv_imported()
+  load_inventory()
+  mark_csv_imported()
+  refresh_stored_status(inventory)
+  save_inventory(inventory)
+  search_items(keyword)
+  update_item(item, inventory)
+}
+class "DataRepository" as data_repository.DataRepository {
+  {abstract}close()
+  {abstract}create(item)
+  {abstract}delete(serial_number)
+  {abstract}filter_by_status(status)
+  {abstract}get_meta(key)
+  {abstract}read_all()
+  {abstract}read_by_serial(serial_number)
+  {abstract}search(keyword)
+  {abstract}set_meta(key, value)
+  {abstract}sync(items)
+  {abstract}update(item)
+  {abstract}update_calculated_fields(items)
+}
+class "<color:red>DataValidationError</color>" as data_exceptions.DataValidationError {
+}
+class "<color:red>DatabaseConnectionError</color>" as data_exceptions.DatabaseConnectionError {
+}
+class "<color:red>DuplicateRecordError</color>" as data_exceptions.DuplicateRecordError {
+}
+class "GeminiClient" as ai_client.GeminiClient {
+  client : Client
+  model_name : str
+  generate_response(prompt: str) -> str
+}
+class "Inventory" as inventory.Inventory {
+  add_item(item)
+  display_items()
+  expiring_items()
+  expiring_items_within_days(alert_days)
+  get_items()
+  get_length()
+  remove_item(item)
+  search_item_by_serial(serial_number)
+}
+class "Item" as item.Item {
+  date_purchased
+  days_remaining
+  expiry_date
+  food_name
+  inventory_quantity
+  serial_number
+  status
+  calculate_days_remaining()
+  determine_status()
+  display_info()
+  update(food_name, expiry_date, date_purchased, inventory_quantity)
+}
+class "KitchenPromptBuilder" as ai_prompt.KitchenPromptBuilder {
+  build_prompt(inventory: list) -> str
+}
+class "MockLLMClient" as ai_layer_NOAPI.MockLLMClient {
+  generate_response(prompt: str) -> str
+}
+class "<color:red>RecordNotFoundError</color>" as data_exceptions.RecordNotFoundError {
+}
+class "SQLiteRepository" as sqlite_repository.SQLiteRepository {
+  connection
+  database_path : str
+  close()
+  create(item)
+  delete(serial_number)
+  filter_by_status(status)
+  get_meta(key)
+  read_all()
+  read_by_serial(serial_number)
+  search(keyword)
+  set_meta(key, value)
+  sync(items)
+  update(item)
+  update_calculated_fields(items)
+}
+ai_client.GeminiClient --|> ai_client.BaseLLMClient
+ai_prompt.KitchenPromptBuilder --|> ai_prompt.BasePromptBuilder
+data_exceptions.DataValidationError --|> data_exceptions.DataLayerError
+data_exceptions.DatabaseConnectionError --|> data_exceptions.DataLayerError
+data_exceptions.DuplicateRecordError --|> data_exceptions.DataLayerError
+data_exceptions.RecordNotFoundError --|> data_exceptions.DataLayerError
+@enduml
