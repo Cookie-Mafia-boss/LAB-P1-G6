@@ -1,27 +1,41 @@
+"""
+Input/Output Layer - All UI, display, and user interaction functions.
+
+This module contains ALL presentation logic:
+- Rich console display functions (tables, panels, markdown)
+- User input prompts and validation
+- Menu rendering and navigation
+- Alert dialogs (Windows message box + console fallback)
+- AI suggestion display formatting
+"""
+
 import ctypes
 import os
 from datetime import datetime
+from typing import Optional, List, Dict, Any
+
 from rich import print
 from rich.panel import Panel
 from rich.markdown import Markdown
 from rich.table import Table
 from rich.console import Console
 from rich.text import Text
+from rich.prompt import Prompt, IntPrompt, Confirm
 
-from classes import inventory
+from classes.inventory import Inventory
 from classes.item import Item
-from logic_layer import inventory_count, validate_expiry_date, validate_food_name, validate_qty
+from logic_layer import validate_expiry_date, validate_food_name, validate_qty
 
 DATE_FORMAT = "%d/%m/%Y"
 console = Console()
 
 
 # ==========================================
-# PRESENTATION / DISPLAY FUNCTIONS
+# CORE DISPLAY FUNCTIONS
 # ==========================================
 
-def display_items(inventory, title):
-    """Display inventory as a formatted table."""
+def display_items(inventory: Inventory, title: str) -> Table:
+    """Display inventory as a formatted Rich table."""
     table = Table(title=title, show_header=True, header_style="bold purple")
     table.add_column("Serial Number", no_wrap=True)
     table.add_column("Food Name", justify="center")
@@ -51,11 +65,17 @@ def display_items(inventory, title):
         )
     return table
 
-def sort_expiring_items(expiring_inventory):
-    """Return a list of expiring items sorted by days remaining."""
-    return sorted(expiring_inventory, key=lambda x: x.days_remaining())
 
-def display_ai_suggestions(sections):
+def sort_expiring_items(expiring_inventory: Inventory) -> List[Item]:
+    """Return a list of expiring items sorted by days remaining."""
+    return sorted(expiring_inventory.get_items(), key=lambda x: x.days_remaining)
+
+
+# ==========================================
+# AI DISPLAY FUNCTIONS
+# ==========================================
+
+def display_ai_suggestions(sections: Dict[str, str]) -> None:
     """
     Display AI response as structured panels with colors.
     sections: dict with keys 'recipes', 'waste_trends', 'immediate_action', 'resupply'
@@ -63,7 +83,7 @@ def display_ai_suggestions(sections):
     if not sections or "error" in sections:
         error_msg = sections.get("error", "Unknown error") if sections else "No response"
         console.print(Panel(
-            f"[bold red]Error calling Gemini API:[/bold red]\n{error_msg}",
+            f"[bold red]Error calling AI:[/bold red]\n{error_msg}",
             title="AI Error",
             border_style="red"
         ))
@@ -98,19 +118,44 @@ def display_ai_suggestions(sections):
         console.print()
 
 
-def display_ai_summary_stats(inventory, expiring_items):
+def display_ai_item_analysis(items: List[Any]) -> None:
+    """Display detailed AI analysis per item in a table."""
+    console.print()
+
+    table = Table(title="AI Item Analysis", show_header=True, header_style="bold magenta")
+    table.add_column("Food Name", style="cyan")
+    table.add_column("Risk Level", justify="center")
+    table.add_column("Days Left", justify="center", style="yellow")
+    table.add_column("Recommended Action")
+
+    for item in items:
+        risk_style = {"high": "red", "medium": "yellow", "low": "green"}.get(
+            item.waste_risk_level.lower(), "white"
+        )
+        table.add_row(
+            item.food_name,
+            f"[{risk_style}]{item.waste_risk_level.upper()}[/{risk_style}]",
+            str(item.days_remaining),
+            item.recommended_action
+        )
+
+    console.print(table)
+
+
+def display_ai_summary_stats(inventory: Inventory, expiring_items: List[Item]) -> None:
     """Show quick stats table at bottom."""
-    total = len(inventory)
-    expired = sum(1 for item in inventory if item['Status'] == 'EXPIRED')
-    expiring = len(expiring_items)
-    fresh = total - expired - expiring
+    items = inventory.get_items()
+    total = len(items)
+    expired = sum(1 for item in items if item.status == 'EXPIRED')
+    expiring_count = len(expiring_items)
+    fresh = total - expired - expiring_count
 
     stats = Table(show_header=False, box=None, padding=(0, 2))
     stats.add_column(style="bold")
     stats.add_column(justify="right")
     stats.add_row("Total Items", str(total))
     stats.add_row("[red]Expired[/red]", str(expired))
-    stats.add_row("[yellow]Expiring Soon[/yellow]", str(expiring))
+    stats.add_row("[yellow]Expiring Soon[/yellow]", str(expiring_count))
     stats.add_row("[green]Fresh[/green]", str(fresh))
 
     console.print(Panel(stats, title="Quick Stats", border_style="dim cyan", padding=(1, 2)))
@@ -129,17 +174,17 @@ def _create_panel(title: str, content: str, border_style: str) -> Panel:
     )
 
 
-def raise_alert(expiring_inventory):
-    if expiring_inventory is not None:
-        expire_alert(expiring_inventory)
+# ==========================================
+# ALERT FUNCTIONS
+# ==========================================
 
-
-def do_nothing():
+def do_nothing() -> None:
     print("User clicked No.")
 
 
-def expire_alert(inventory):
-    if inventory is None:
+def expire_alert(inventory: Optional[Inventory]) -> None:
+    """Show expiry alert via Windows message box or console fallback."""
+    if inventory is None or inventory.get_length() == 0:
         return  # No alert if no expiring items
 
     alert_title = "Items are about to expire!"
@@ -147,227 +192,354 @@ def expire_alert(inventory):
 
     if os.name == 'nt':
         result = ctypes.windll.user32.MessageBoxW(0, alert_text, alert_title, 4)
-        if result == 6:
-            print(display_items(inventory, "Expiring Items"))
-        elif result == 7:
+        if result == 6:  # Yes
+            console.print(display_items(inventory, "Expiring Items"))
+        elif result == 7:  # No
             do_nothing()
     else:
         choice = input(f"\n[Warning] {alert_text} (y/n): ").strip().lower()
         if choice == 'y':
-            print(display_items(inventory, "Expiring Items"))
+            console.print(display_items(inventory, "Expiring Items"))
         else:
             do_nothing()
 
-def check_expires(inventory):
+
+def check_expires(inventory: Inventory) -> None:
+    """Check for expiring items with customizable threshold."""
     try:
-        days = input("Enter warning threshold in days [Default: 30]: ").strip()
-        days = int(days) if days else 30
+        days_input = Prompt.ask("Enter warning threshold in days", default="30")
+        days = int(days_input) if days_input else 30
     except ValueError:
         days = 30
+
     expiring = inventory.expiring_items_within_days(alert_days=days)
     if expiring is not None and expiring.get_length() > 0:
-        print(display_items(expiring, f"Items Expiring Within {days} Days"))
+        console.print(display_items(expiring, f"Items Expiring Within {days} Days"))
     else:
         print(f"✅ No items expiring within {days} days.")
 
-# def add_food_item(inventory):
-#     """Stub function to allow adding items manually."""
-#     print("\n--- Add New Food Item ---")
-#     serial_num = len(inventory) + 1
-#     serial_num_str = f"{str(serial_num).zfill(4)}"
 
-#     # Reject the item if the food name is empty or purely numeric
-#     name, error = validate_food_name(input("Enter food name: "))
-#     if error:
-#         print(f"[red]Error:[/red] {error}")
-#         return
-     
-#     qty_input = input("Enter quantity: ").strip()
+def run_check_expires(inventory: Inventory) -> None:
+    """Wrapper for check_expires to maintain consistent naming."""
+    check_expires(inventory)
 
-#     qty, error = validate_qty(qty_input)
-#     if error:
-#         print(f"[red]Error:[/red] {error}")
-#         return
 
-#     exp_date = input(f"Enter expiry date ({DATE_FORMAT}): ").strip()
+# ==========================================
+# MENU RENDERING
+# ==========================================
 
-#     # Reject the item if the expiry date is invalid or more than MAX_YEARS away
-#     exp_dt, error = validate_expiry_date(exp_date)
-#     if error:
-#         print(f"[red]Error:[/red] {error}")
-#         return
+def show_banner(title: str, subtitle: str = "") -> None:
+    """Display a styled banner."""
+    text = Text()
+    text.append(title, style="bold cyan")
+    if subtitle:
+        text.append(f"\n{subtitle}", style="dim")
+    console.print(Panel(text, border_style="cyan", padding=(1, 2)))
 
-#     purch_date = datetime.now().strftime(DATE_FORMAT)
 
-#     try:
-#         days_rem = (exp_dt - datetime.now().date()).days
-#         if days_rem <= 0:
-#             status = "EXPIRED"
-#         elif days_rem <= 30:
-#             status = "EXPIRING"
-#         else:
-#             status = "FRESH"
+def show_main_menu(current_time: str = None) -> None:
+    """Display the main menu options."""
+    if current_time is None:
+        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-#         inventory.append({
-#             "Serial_Number": serial_num_str,
-#             "Food_Name": name,
-#             "Expiry_Date": exp_date,
-#             "Date_Purchased": purch_date,
-#             "Inventory_Quantity": int(qty),
-#             "Days_Remaining": days_rem,
-#             "Status": status
-#         })
+    console.print()
+    show_banner("FOOD WASTE MANAGEMENT SYSTEM", f"Current time: {current_time}")
 
-#         print(f"[green]Success:[/green] Added '{name}' successfully!")
+    menu_table = Table(show_header=False, box=None, padding=(0, 2))
+    menu_table.add_column("Option", style="bold yellow", width=3)
+    menu_table.add_column("Description", style="white")
 
-#     except Exception as e:
-#         print(f"[red]Error:[/red] Failed to add item: {e}")
+    options = [
+        ("1", "View Inventory"),
+        ("2", "Add New Food Item"),
+        ("3", "Delete Food Item"),
+        ("4", "Update Food Item"),
+        ("5", "Check Expiry Alerts"),
+        ("6", "Search Inventory"),
+        ("7", "Filter by Status"),
+        ("8", "Get AI Suggestions (Recipes, Waste Trends, Actions, Resupply)"),
+        ("9", "View Summary Statistics"),
+        ("10", "Exit"),
+    ]
 
-def add_food_item(inventory):
-    """Add a new food item to the inventory manually."""
-    print("\n--- Add New Food Item ---")
+    for opt, desc in options:
+        menu_table.add_row(opt, desc)
 
-    # Next serial number: highest existing + 1, so removing items never causes duplicates
+    console.print(menu_table)
+
+
+def get_user_choice() -> str:
+    """Get and validate user menu choice."""
+    while True:
+        choice = input("Select an option [1-9]: ")
+        if int(choice) >= 1 and int(choice) <= 10:
+            return choice
+
+
+def show_error(message: str) -> None:
+    """Display an error message in a red panel."""
+    console.print(Panel(
+        f"[bold red]{message}[/bold red]",
+        title="Error",
+        border_style="red"
+    ))
+
+
+def show_success(message: str) -> None:
+    """Display a success message."""
+    print(f"[green]{message}[/green]")
+
+
+def show_warning(message: str) -> None:
+    """Display a warning message."""
+    print(f"[yellow]{message}[/yellow]")
+
+
+def show_info(message: str) -> None:
+    """Display an info message."""
+    print(f"[cyan]{message}[/cyan]")
+
+
+# ==========================================
+# INPUT/INTERACTION FUNCTIONS
+# ==========================================
+
+def prompt_search_keyword() -> str:
+    """Prompt user for search keyword."""
+    return Prompt.ask("Enter search keyword (name or serial number)").strip()
+
+
+def prompt_filter_status() -> str:
+    """Prompt user for status filter."""
+    return Prompt.ask(
+        "Filter by status",
+        choices=["FRESH", "EXPIRING", "EXPIRED"],
+        default="EXPIRING"
+    )
+
+
+def prompt_food_name() -> str:
+    """Prompt for food name with validation."""
+    while True:
+        name = Prompt.ask("Enter food name").strip()
+        validated, error = validate_food_name(name)
+        if error:
+            show_error(error)
+            continue
+        return validated
+
+
+def prompt_quantity() -> int:
+    """Prompt for quantity with validation."""
+    while True:
+        qty_input = Prompt.ask("Enter quantity").strip()
+        qty, error = validate_qty(qty_input)
+        if error:
+            show_error(error)
+            continue
+        return qty
+
+
+def prompt_expiry_date() -> str:
+    """Prompt for expiry date with validation."""
+    while True:
+        exp_date = Prompt.ask(f"Enter expiry date ({DATE_FORMAT})").strip()
+        exp_dt, error = validate_expiry_date(exp_date)
+        if error:
+            show_error(error)
+            continue
+        return exp_date
+
+
+def prompt_serial_number(action: str) -> str:
+    """Prompt for serial number."""
+    return Prompt.ask(f"Input Serial Number to {action}").strip().zfill(4)
+
+
+def confirm_action(message: str) -> bool:
+    """Ask for confirmation."""
+    return Confirm.ask(message)
+
+
+# ==========================================
+# CRUD INTERACTION WRAPPERS
+# ==========================================
+
+def run_add_food_item(inventory: Inventory) -> bool:
+    """
+    Run the add food item interaction.
+    Returns True if item was added successfully.
+    """
+    console.print()
+    show_banner("Add New Food Item")
+
+    # Next serial number: highest existing + 1
     existing = [int(item.serial_number) for item in inventory.get_items()]
     serial_num_str = str(max(existing, default=0) + 1).zfill(4)
 
-    name, error = validate_food_name(input("Enter food name: "))
-    if error:
-        print(f"[red]Error:[/red] {error}")
-        return
-
-    qty, error = validate_qty(input("Enter quantity: ").strip())
-    if error:
-        print(f"[red]Error:[/red] {error}")
-        return
-
-    exp_date = input(f"Enter expiry date ({DATE_FORMAT}): ").strip()
-    exp_dt, error = validate_expiry_date(exp_date)
-    if error:
-        print(f"[red]Error:[/red] {error}")
-        return
-
+    name = prompt_food_name()
+    qty = prompt_quantity()
+    exp_date = prompt_expiry_date()
     purch_date = datetime.now().strftime(DATE_FORMAT)
 
     try:
-        item = Item(serial_num_str, name, exp_date, purch_date, int(qty))
+        item = Item(serial_num_str, name, exp_date, purch_date, qty)
         inventory.add_item(item)
-        print(f"[green]Success:[/green] Added '{name}' successfully!")
+        show_success(f"Added '{name}' successfully!")
+        return True
     except Exception as e:
-        print(f"[red]Error:[/red] Failed to add item: {e}")
+        show_error(f"Failed to add item: {e}")
+        return False
 
 
-def _renumber_serial_numbers(inventory):
-    """Renumber serial numbers sequentially (0001, 0002, ...) after deletion."""
-    for index, item in enumerate(inventory, start=1):
-        item["Serial_Number"] = f"{str(index).zfill(4)}"
-
-
-# def delete_food_item(inventory):
-#     serial_number = input("Input Serial Number to delete: ")
-#     found = False
-#     for item in inventory:
-#         if item["Serial_Number"] == serial_number:
-#             found = True
-#             inventory.remove(item)
-
-#     if found:
-#         # Renumber remaining items to maintain sequential order
-#         _renumber_serial_numbers(inventory)
-#         print("\nItem successfully deleted")
-#     else:
-#         print("\nSerial Number not found")
-
-def delete_food_item(inventory):
-    serial_number = input("Input Serial Number to delete: ")
-    item = inventory.search_item_by_serial(serial_number)
-    if item is None:
-        print("\nSerial Number not found")
-        return
-    
-    inventory.remove_item(item)
-    print("\nItem successfully deleted")
-            
-
-# def update_food_item(inventory):
-#     serial_number = input("Input Serial Number to update: ")
-#     found = False
-#     for item in inventory:
-#         if item["Serial_Number"] == serial_number:
-#             found = True
-#             name, error = validate_food_name(input("Enter food name: "))
-#             if error:
-#                 print(f"[red]Error:[/red] {error}")
-#                 return
-            
-#             qty_input = input("Enter quantity: ").strip()
-#             qty, error = validate_qty(qty_input)
-#             if error:
-#                 print(f"[red]Error:[/red] {error}")
-#                 return
-
-
-#             exp_date = input(f"Enter expiry date ({DATE_FORMAT}): ").strip()
-#             exp_dt, error = validate_expiry_date(exp_date)
-#             if error:
-#                 print(f"[red]Error:[/red] {error}")
-#                 return
-            
-#             purch_date = datetime.now().strftime(DATE_FORMAT)
-#             try:
-#                     exp_dt = datetime.strptime(exp_date, DATE_FORMAT).date()
-#                     days_rem = (exp_dt - datetime.now().date()).days
-#                     if days_rem <= 0:
-#                         status = "EXPIRED"
-#                     elif days_rem <= 30:
-#                         status = "EXPIRING"
-#                     else:
-#                         status = "FRESH"
-#             except Exception as e:
-#                     print(f"[red]Error:[/red] Failed to update item: {e}")
-
-#             item["Food_Name"] = name
-#             item["Expiry_Date"] = exp_date
-#             item["Date_Purchased"] = purch_date
-#             item["Inventory_Quantity"] = int(qty)
-#             item["Days_Remaining"] = days_rem
-#             item["Status"] = status
- 
-
-#     if found != True:
-#         print("Item not found")
-#     else:
-#         print("\nItem updated")
-
-def update_food_item(inventory):
-    """Update an existing food item in the inventory."""
-    serial_number = input("Input Serial Number to update: ").strip().zfill(4)
+def run_delete_food_item(inventory: Inventory) -> bool:
+    """
+    Run the delete food item interaction.
+    Returns True if item was deleted successfully.
+    """
+    console.print()
+    serial_number = prompt_serial_number("delete")
 
     item = inventory.search_item_by_serial(serial_number)
     if item is None:
-        print("Item not found")
-        return
+        show_error("Serial Number not found")
+        return False
 
-    name, error = validate_food_name(input("Enter food name: "))
-    if error:
-        print(f"[red]Error:[/red] {error}")
-        return
+    if confirm_action(f"Delete '{item.food_name}' (Serial: {serial_number})?"):
+        inventory.remove_item(item)
+        show_success("Item successfully deleted")
+        return True
+    else:
+        show_info("Deletion cancelled")
+        return False
 
-    qty, error = validate_qty(input("Enter quantity: ").strip())
-    if error:
-        print(f"[red]Error:[/red] {error}")
-        return
 
-    exp_date = input(f"Enter expiry date ({DATE_FORMAT}): ").strip()
-    exp_dt, error = validate_expiry_date(exp_date)
-    if error:
-        print(f"[red]Error:[/red] {error}")
-        return
+def run_update_food_item(inventory: Inventory) -> bool:
+    """
+    Run the update food item interaction.
+    Returns True if item was updated successfully.
+    """
+    console.print()
+    serial_number = prompt_serial_number("update")
 
+    item = inventory.search_item_by_serial(serial_number)
+    if item is None:
+        show_error("Item not found")
+        return False
+
+    console.print(f"[dim]Updating: {item.food_name} (Serial: {serial_number})[/dim]")
+
+    name = prompt_food_name()
+    qty = prompt_quantity()
+    exp_date = prompt_expiry_date()
     purch_date = datetime.now().strftime(DATE_FORMAT)
 
     try:
-        item.update(name, exp_date, purch_date, int(qty))
-        print("\nItem updated")
+        item.update(name, exp_date, purch_date, qty)
+        show_success("Item updated")
+        return True
     except Exception as e:
-        print(f"[red]Error:[/red] Failed to update item: {e}")
+        show_error(f"Failed to update item: {e}")
+        return False
+
+
+def run_search_inventory(inventory: Inventory, data_manager) -> None:
+    """Run the search inventory interaction."""
+    console.print()
+    keyword = prompt_search_keyword()
+    if not keyword:
+        show_warning("Search keyword cannot be empty.")
+        return
+
+    results = data_manager.search_items(keyword)
+
+    if results:
+        temp_inv = Inventory()
+        for item in results:
+            temp_inv.add_item(item)
+        console.print(display_items(temp_inv, f"Search Results for '{keyword}'"))
+    else:
+        show_info(f"No items found matching '{keyword}'.")
+
+
+def run_filter_by_status(inventory: Inventory, data_manager) -> None:
+    """Run the filter by status interaction."""
+    console.print()
+    status = prompt_filter_status()
+
+    results = data_manager.filter_items_by_status(status)
+
+    if results:
+        temp_inv = Inventory()
+        for item in results:
+            temp_inv.add_item(item)
+        console.print(display_items(temp_inv, f"Items with Status: {status}"))
+    else:
+        show_info(f"No items with status '{status}'.")
+
+
+def run_ai_suggestions(inventory: Inventory, ai_service) -> None:
+    """Run the AI suggestions interaction."""
+    console.print()
+    show_info("Analyzing inventory with AI...")
+
+    ai_inventory = inventory_to_ai_format(inventory)
+
+    if not ai_inventory:
+        show_warning("Inventory is empty. Add some items first!")
+        return
+
+    try:
+        response = ai_service.process_inventory(ai_inventory)
+
+        # Convert Pydantic response to dict format for display
+        sections = {
+            "recipes": "\n".join(f"• {recipe}" for recipe in response.recipe_suggestions) if response.recipe_suggestions else "",
+            "waste_trends": response.waste_trend_summary,
+            "immediate_action": "\n".join(
+                f"• {item.food_name} ({item.days_remaining}d left): {item.recommended_action}"
+                for item in response.items if item.waste_risk_level.lower() == "high"
+            ) if response.items else "",
+            "resupply": response.resupply_recommendations,
+        }
+
+        display_ai_suggestions(sections)
+
+        # Also show the detailed item analysis
+        if response.items:
+            display_ai_item_analysis(response.items)
+
+    except Exception as e:
+        show_error(f"AI Analysis Failed: {str(e)}")
+
+
+def run_view_stats(inventory: Inventory) -> None:
+    """Run the view statistics interaction."""
+    console.print()
+    expiring = inventory.expiring_items()
+    display_ai_summary_stats(inventory, expiring.get_items() if expiring else [])
+
+
+# ==========================================
+# HELPER FUNCTIONS
+# ==========================================
+
+def inventory_to_ai_format(inventory: Inventory) -> List[Dict[str, Any]]:
+    """Convert Inventory items to the format expected by AI layer."""
+    items = []
+    for item in inventory.get_items():
+        items.append({
+            "Food_Name": item.food_name,
+            "Expiry_Date": item.expiry_date,
+            "Inventory_Quantity": item.inventory_quantity,
+            "Days_Remaining": item.days_remaining,
+            "Status": item.status,
+        })
+    return items
+
+
+def show_startup_alert(inventory: Inventory) -> None:
+    """Show expiry alert on startup if there are expiring items."""
+    expiring = inventory.expiring_items()
+    if expiring.get_length() > 0:
+        expire_alert(expiring)
