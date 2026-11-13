@@ -4,7 +4,19 @@ WORKDIR /app
 
 
 COPY ai_layer.py .
+
+#AI_layer testscript
+COPY ai_layer_livetest.py .
+COPY ai_layer_NOAPI.py .
+
+#db file
+COPY food_inventory.db .
+
+#class folder
+COPY classes .
+
 COPY data_layer.py .
+COPY sqlite_repository.py .
 COPY input_output_layer.py .
 COPY logic_layer.py .
 COPY food_inventory_dataset.csv .
