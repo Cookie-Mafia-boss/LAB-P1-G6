@@ -258,8 +258,7 @@ def show_main_menu(current_time: str = None) -> None:
         ("6", "Search Inventory"),
         ("7", "Filter by Status"),
         ("8", "Get AI Suggestions (Recipes, Waste Trends, Actions, Resupply)"),
-        ("9", "View Summary Statistics"),
-        ("10", "Exit"),
+        ("9", "Exit"),
     ]
 
     for opt, desc in options:
