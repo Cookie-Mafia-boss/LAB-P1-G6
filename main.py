@@ -6,8 +6,33 @@ console = Console()
 
 from data_layer import initialise_inventory, save_inventory
 # from logic_layer import check_expiries
-from ai_layer import get_ai_suggestions
-from input_output_layer import display_items, expire_alert, check_expires, add_food_item, display_ai_suggestions, display_ai_summary_stats, delete_food_item, update_food_item
+from ai_layer import AIService
+from input_output_layer import (
+    display_items, expire_alert, check_expires,
+    add_food_item, delete_food_item, update_food_item, 
+    display_ai_response, display_inventory_stats,
+    )
+
+def inventory_to_prompt_list(inventory):
+    return [
+        {
+            "food_name": item.food_name,
+            "inventory_quantity": item.inventory_quantity,
+            "expiry_date": item.expiry_date,
+            "days_remaining": item.days_remaining,
+            "status": item.status,
+        }
+        for item in inventory.get_items()
+    ]
+
+"""
+WARNING: USE THIS IF YOU DO NOT WANT TO EXCEED THE GEMINI INPUT TOKEN LIMIT
+
+def inventory_to_prompt_list(inventory):
+    items = inventory.get_items()
+    interesting = [i for i in items if i.status in ("EXPIRED", "EXPIRING")] or items
+    return [ { ... } for i in interesting[:50] ]
+"""
 
 #Encapsulates the application controller logic into a FoodWasteApp class.
 # ==========================================
@@ -16,6 +41,7 @@ from input_output_layer import display_items, expire_alert, check_expires, add_f
 def main_menu():
     """Runs the interactive CLI menu loop."""
     inventory = initialise_inventory()
+    ai_service = AIService()
     
     # Check for initial startup alerts
     # print(inventory.get_items())
@@ -41,18 +67,20 @@ def main_menu():
             print(display_items(inventory, "Current Food Inventory"))
         elif choice == "2":
             add_food_item(inventory)
+            save_inventory(inventory)
         elif choice == "3":
             delete_food_item(inventory)
+            save_inventory(inventory)
         elif choice == "4":
             update_food_item(inventory)
+            save_inventory(inventory)
         elif choice == "5":
             check_expires(inventory)
-        # elif choice == "6":
-        #     expiring = check_expiries(inventory)
-        #     console.print("[cyan]Analyzing inventory with AI...[/cyan]")
-        #     sections = get_ai_suggestions(inventory, expiring)
-        #     display_ai_suggestions(sections)
-        #     display_ai_summary_stats(inventory, expiring)
+        elif choice == "6":
+            console.print("[cyan]Analyzing inventory with AI...[/cyan]")
+            response = ai_service.process_inventory(inventory_to_prompt_list(inventory))
+            display_ai_response(response)
+            display_inventory_stats(inventory)
         elif choice == "7":
             print("Exiting application. Goodbye!")
             break

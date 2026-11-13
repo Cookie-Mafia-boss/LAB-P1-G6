@@ -1,0 +1,51 @@
+@startuml packages_MyLargeProject
+set namespaceSeparator none
+package "First" as First {
+}
+package "Prototype3" as Prototype3 {
+}
+package "ai_client" as ai_client {
+}
+package "ai_data_validation" as ai_data_validation {
+}
+package "ai_layer" as ai_layer {
+}
+package "ai_layer_NOAPI" as ai_layer_NOAPI {
+}
+package "ai_layer_livetest" as ai_layer_livetest {
+}
+package "ai_prompt" as ai_prompt {
+}
+package "csv_migrator" as csv_migrator {
+}
+package "data_exceptions" as data_exceptions {
+}
+package "data_layer" as data_layer {
+}
+package "data_manager" as data_manager {
+}
+package "data_repository" as data_repository {
+}
+package "input_output_layer" as input_output_layer {
+}
+package "inventory" as inventory {
+}
+package "item" as item {
+}
+package "logic_layer" as logic_layer {
+}
+package "main" as main {
+}
+package "sqlite_repository" as sqlite_repository {
+}
+package "test_script" as test_script {
+}
+ai_layer_NOAPI --> ai_layer
+ai_layer_livetest --> ai_layer
+input_output_layer --> logic_layer
+main --> ai_layer
+main --> data_layer
+main --> input_output_layer
+test_script --> ai_layer
+test_script --> logic_layer
+@enduml
