@@ -2,7 +2,6 @@
 
 from abc import ABC, abstractmethod
 
-
 class DataRepository(ABC):
     """Defines the operations any concrete data repository must provide.
 
